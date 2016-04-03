@@ -22,6 +22,7 @@
 
 #import "DemoModelData.h"
 #import "NSUserDefaults+DemoSettings.h"
+#import <Parse/Parse.h>
 
 
 @class DemoMessagesViewController;

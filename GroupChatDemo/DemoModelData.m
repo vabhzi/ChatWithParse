@@ -18,7 +18,11 @@
 
 #import "DemoModelData.h"
 
+#import <Parse.h>
 #import "NSUserDefaults+DemoSettings.h"
+
+
+#define MAX_ENTRIES_LOADED 25
 
 
 /**
@@ -38,7 +42,9 @@
             self.messages = [NSMutableArray new];
         }
         else {
-            [self loadFakeMessages];
+            //[self loadFakeMessages];
+            self.messages = [NSMutableArray new];
+            //[self loadLocalChat];
         }
         
         
@@ -91,70 +97,91 @@
     return self;
 }
 
-- (void)loadFakeMessages
+#pragma mark - Parse
+
+- (void)loadLocalChatwithCompletionHandler:(void (^)(BOOL))completionHandler
 {
-    /**
-     *  Load some fake messages for demo.
-     *
-     *  You should have a mutable array or orderedSet, or something.
-     */
-    self.messages = [[NSMutableArray alloc] initWithObjects:
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdSquires
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameSquires
-                                                     date:[NSDate distantPast]
-                                                     text:@"Welcome to JSQMessages: A messaging UI framework for iOS."],
-                     
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdWoz
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameWoz
-                                                     date:[NSDate distantPast]
-                                                     text:@"It is simple, elegant, and easy to use. There are super sweet default settings, but you can customize like crazy."],
-                     
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdSquires
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameSquires
-                                                     date:[NSDate distantPast]
-                                                     text:@"It even has data detectors. You can call me tonight. My cell number is 123-456-7890. My website is www.hexedbits.com."],
-                     
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdJobs
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameJobs
-                                                     date:[NSDate date]
-                                                     text:@"JSQMessagesViewController is nearly an exact replica of the iOS Messages App. And perhaps, better."],
-                     
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdCook
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameCook
-                                                     date:[NSDate date]
-                                                     text:@"It is unit-tested, free, open-source, and documented."],
-                     
-                     [[JSQMessage alloc] initWithSenderId:kJSQDemoAvatarIdSquires
-                                        senderDisplayName:kJSQDemoAvatarDisplayNameSquires
-                                                     date:[NSDate date]
-                                                     text:@"Now with media messages!"],
-                     nil];
+    NSMutableArray *arrTempMsg = [NSMutableArray new];
+    PFQuery *query = [PFQuery queryWithClassName:@"chatLog"];
     
-    [self addPhotoMediaMessage];
     
-    /**
-     *  Setting to load extra messages for testing/demo
-     */
-    if ([NSUserDefaults extraMessagesSetting]) {
-        NSArray *copyOfMessages = [self.messages copy];
-        for (NSUInteger i = 0; i < 4; i++) {
-            [self.messages addObjectsFromArray:copyOfMessages];
+    // If no objects are loaded in memory, we look to the cache first to fill the table
+    // and then subsequently do a query against the network.
+//    if ([self.messages count] == 0) {
+//        query.cachePolicy = kPFCachePolicyCacheThenNetwork;
+//        [query orderByAscending:@"createdAt"];
+//        NSLog(@"Trying to retrieve from cache");
+//        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+//            if (!error) {
+//                // The find succeeded.
+//                NSLog(@"Successfully retrieved %lu chats from cache.", (unsigned long)objects.count);
+//                [arrTempMsg removeAllObjects];
+//                [arrTempMsg addObjectsFromArray:objects];
+//                [self.messages removeAllObjects];
+//                for (PFObject *obj in arrTempMsg) {
+//                    
+//                    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:[obj valueForKey:@"sender"]
+//                                                             senderDisplayName:[obj valueForKey:@"sender"]
+//                                                                          date:[obj objectForKey:@"date"]
+//                                                                          text:[obj valueForKey:@"message"]];
+//                    [self.messages addObject:message];
+//                    
+//                }
+//                completionHandler(YES);
+//            } else {
+//                // Log details of the failure
+//                NSLog(@"Error: %@ %@", error, [error userInfo]);
+//            }
+//        }];
+//    }
+    __block int totalNumberOfEntries = 0;
+    [query orderByAscending:@"createdAt"];
+    [query countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
+        if (!error) {
+            // The count request succeeded. Log the count
+            NSLog(@"There are currently %d entries", number);
+            totalNumberOfEntries = number;
+           // if (totalNumberOfEntries > [arrTempMsg count])
+            {
+                NSLog(@"Retrieving data");
+                NSInteger theLimit;
+                if (totalNumberOfEntries-[arrTempMsg count]>MAX_ENTRIES_LOADED) {
+                    theLimit = MAX_ENTRIES_LOADED;
+                }
+                else {
+                    theLimit = totalNumberOfEntries-[arrTempMsg count];
+                }
+                //query.limit = theLimit;
+                [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                    if (!error) {
+                        // The find succeeded.
+                        NSLog(@"Successfully retrieved %lu chats.", (unsigned long)objects.count);
+                        [arrTempMsg addObjectsFromArray:objects];
+                        [self.messages removeAllObjects];
+                        for (PFObject *obj in arrTempMsg) {
+                           
+                            JSQMessage *message = [[JSQMessage alloc] initWithSenderId:[obj valueForKey:@"sender"]
+                                                                     senderDisplayName:[obj valueForKey:@"sender"]
+                                                                                  date:[obj objectForKey:@"date"]
+                                                                                  text:[obj valueForKey:@"message"]];
+                            [self.messages addObject:message];
+                            
+                        }
+                        completionHandler(YES);
+                    } else {
+                        // Log details of the failure
+                        NSLog(@"Error: %@ %@", error, [error userInfo]);
+                    }
+                }];
+            }
+            
+        } else {
+            // The request failed, we'll keep the chatData count?
+            number = (int)[self.messages count];
         }
-    }
-    
-    
-    /**
-     *  Setting to load REALLY long message for testing/demo
-     *  You should see "END" twice
-     */
-    if ([NSUserDefaults longMessageSetting]) {
-        JSQMessage *reallyLongMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdSquires
-                                                            displayName:kJSQDemoAvatarDisplayNameSquires
-                                                                   text:@"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? END Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? END"];
-        
-        [self.messages addObject:reallyLongMessage];
-    }
+    }];
 }
+
 
 - (void)addPhotoMediaMessage
 {

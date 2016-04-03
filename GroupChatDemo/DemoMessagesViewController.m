@@ -17,6 +17,7 @@
 //
 
 #import "DemoMessagesViewController.h"
+#import "AppDelegate.h"
 
 @implementation DemoMessagesViewController
 
@@ -35,12 +36,19 @@
 {
     [super viewDidLoad];
     
+    AppDelegate *appdelegate = [[UIApplication sharedApplication]delegate];
+    appdelegate.refreshHandler = ^{
+        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+            [self.collectionView reloadData];
+        }];
+    };
+    
     self.title = @"JSQMessages";
     
     /**
      *  You MUST set your senderId and display name
      */
-    self.senderId = kJSQDemoAvatarIdSquires;
+    self.senderId = kJSQDemoAvatarDisplayNameSquires;
     self.senderDisplayName = kJSQDemoAvatarDisplayNameSquires;
     
     self.inputToolbar.contentView.textView.pasteDelegate = self;
@@ -62,7 +70,7 @@
         self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
     }
     
-    self.showLoadEarlierMessagesHeader = YES;
+    self.showLoadEarlierMessagesHeader = NO;
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage jsq_defaultTypingIndicatorImage]
                                                                               style:UIBarButtonItemStyleBordered
@@ -99,16 +107,53 @@
 {
     [super viewWillAppear:animated];
     
+    
+    
+    
     if (self.delegateModal) {
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                                               target:self
                                                                                               action:@selector(closePressed:)];
     }
+    //[self.demoData loadLocalChat];
+    [self.collectionView reloadData];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
+    
+    UIAlertController *alertController = [UIAlertController
+                                          alertControllerWithTitle:@""
+                                          message:@"Enter User Name"
+                                          preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField)
+     {
+         textField.placeholder = @"eg. John Miller";
+     }];
+    
+    UIAlertAction *okAction = [UIAlertAction
+                               actionWithTitle:NSLocalizedString(@"OK", @"OK action")
+                               style:UIAlertActionStyleDefault
+                               handler:^(UIAlertAction *action)
+                               {
+                                  UITextField *txtUserName = alertController.textFields.firstObject;
+                                   self.senderDisplayName = txtUserName.text;
+                                   self.senderId    = txtUserName.text;
+                                   [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+                                       [self.collectionView reloadData];
+                                       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                                           [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+                                       });
+                                       
+                                   }];
+                                   
+                               }];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+    
     
     /**
      *  Enable/disable springy bubbles, default is NO.
@@ -311,6 +356,11 @@
      */
     [JSQSystemSoundPlayer jsq_playMessageSentSound];
     
+    
+    
+   
+    
+    
     JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
                                              senderDisplayName:senderDisplayName
                                                           date:date
@@ -318,7 +368,28 @@
     
     [self.demoData.messages addObject:message];
     
-    [self finishSendingMessageAnimated:YES];
+    // going for the parsing
+    PFObject *newMessage = [PFObject objectWithClassName:@"chatLog"];
+    [newMessage setObject:text forKey:@"message"];
+    [newMessage setObject:senderDisplayName forKey:@"sender"];
+    [newMessage setObject:date forKey:@"date"];
+    //[newMessage saveInBackground];
+    [newMessage saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if(succeeded)
+        {
+            [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+                [self finishSendingMessageAnimated:YES];
+            }];
+            
+
+        }
+    }];
+    
+    PFPush *push = [[PFPush alloc] init];
+    [push setChannel:@"global"];
+    [push setMessage:[NSString stringWithFormat:@"%@ : %@",senderDisplayName,text]];
+    [push sendPushInBackground];
+    
 }
 
 - (void)didPressAccessoryButton:(UIButton *)sender

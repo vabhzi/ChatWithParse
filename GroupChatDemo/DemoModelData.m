@@ -159,12 +159,31 @@
                         [arrTempMsg addObjectsFromArray:objects];
                         [self.messages removeAllObjects];
                         for (PFObject *obj in arrTempMsg) {
-                           
+                            if([obj valueForKey:@"image"])
+                            {
+                                PFFile *file = [obj valueForKey:@"image"];
+                                //NSLog( @"-=== %@",[obj valueForKey:@"image"]);
+                                [file getDataInBackgroundWithBlock:^(NSData *data, NSError *error) {
+                                    if (!error) {
+                                        UIImage *image = [UIImage imageWithData:data];
+                                        JSQPhotoMediaItem *photoItem = [[JSQPhotoMediaItem alloc] initWithImage:image];
+                                        JSQMessage *photoMessage = [JSQMessage messageWithSenderId:[obj valueForKey:@"sender"]
+                                                                                       displayName:[obj valueForKey:@"sender"]
+                                                                                             media:photoItem];
+                                        [self.messages addObject:photoMessage];
+                                    }
+                                }];
+                                
+                            }
+                            else
+                            {
+                            
                             JSQMessage *message = [[JSQMessage alloc] initWithSenderId:[obj valueForKey:@"sender"]
                                                                      senderDisplayName:[obj valueForKey:@"sender"]
                                                                                   date:[obj objectForKey:@"date"]
                                                                                   text:[obj valueForKey:@"message"]];
                             [self.messages addObject:message];
+                            }
                             
                         }
                         completionHandler(YES);
@@ -183,15 +202,43 @@
 }
 
 
-- (void)addPhotoMediaMessage
+- (void)addPhotoMediaMessagewithImage :(UIImage *)image
 {
     // Vaibhav
     // Need to open Gallary
-    JSQPhotoMediaItem *photoItem = [[JSQPhotoMediaItem alloc] initWithImage:[UIImage imageNamed:@"goldengate"]];
+    JSQPhotoMediaItem *photoItem = [[JSQPhotoMediaItem alloc] initWithImage:image];
     JSQMessage *photoMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdSquires
                                                    displayName:kJSQDemoAvatarDisplayNameSquires
                                                          media:photoItem];
     [self.messages addObject:photoMessage];
+    
+    NSData* data = UIImageJPEGRepresentation(image, 0.5f);
+    PFFile *imageFile = [PFFile fileWithName:@"Image.jpg" data:data];
+    
+    // Save the image to Parse
+    
+    [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        if (!error) {
+            NSUserDefaults *standerdDefault = [NSUserDefaults new];
+            // The image has now been uploaded to Parse. Associate it with a new object
+            PFObject* newPhotoObject = [PFObject objectWithClassName:@"chatLog"];
+            [newPhotoObject setObject:imageFile forKey:@"image"];
+            [newPhotoObject setObject:[standerdDefault valueForKey:@"username"] forKey:@"sender"];
+            [newPhotoObject setObject:[NSDate date] forKey:@"date"];
+            
+            [newPhotoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                if (!error) {
+                    NSLog(@"Saved");
+                }
+                else{
+                    // Error
+                    NSLog(@"Error: %@ %@", error, [error userInfo]);
+                }
+            }];
+        }
+    }];
+    
+    
 }
 
 - (void)addLocationMediaMessageCompletion:(JSQLocationMediaItemCompletionBlock)completion

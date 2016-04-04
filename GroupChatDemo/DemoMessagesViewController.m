@@ -19,6 +19,13 @@
 #import "DemoMessagesViewController.h"
 #import "AppDelegate.h"
 
+@interface DemoMessagesViewController()
+{
+    UIAlertAction *okAction;
+    UIImage *pickedImage;
+}
+@end
+
 @implementation DemoMessagesViewController
 
 #pragma mark - View lifecycle
@@ -48,6 +55,7 @@
     /**
      *  You MUST set your senderId and display name
      */
+
     self.senderId = kJSQDemoAvatarDisplayNameSquires;
     self.senderDisplayName = kJSQDemoAvatarDisplayNameSquires;
     
@@ -122,37 +130,59 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    NSUserDefaults *standerdDefaults = [NSUserDefaults new];
+    
+    if([standerdDefaults valueForKey:@"username"])
+    {
+        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+            [self.collectionView reloadData];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                //[self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+            });
+            
+        }];
+    }
+    else
+    {
+        UIAlertController *alertController = [UIAlertController
+                                              alertControllerWithTitle:@""
+                                              message:@"Enter User Name"
+                                              preferredStyle:UIAlertControllerStyleAlert];
+        
+        [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField)
+         {
+             textField.delegate = self;
+             textField.placeholder = @"eg. John Miller";
+         }];
+        
+        okAction = [UIAlertAction
+                    actionWithTitle:NSLocalizedString(@"OK", @"OK action")
+                    style:UIAlertActionStyleDefault
+                    handler:^(UIAlertAction *action)
+                    {
+                        
+                        UITextField *txtUserName = alertController.textFields.firstObject;
+                        NSUserDefaults *standerdDefaults = [NSUserDefaults new];
+                        [standerdDefaults setValue:txtUserName.text forKey:@"username"];
+                        self.senderDisplayName = txtUserName.text;
+                        self.senderId    = txtUserName.text;
+                        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+                            [self.collectionView reloadData];
+                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+                            });
+                            
+                        }];
+                        
+                    }];
+        okAction.enabled = NO;
+        [alertController addAction:okAction];
+        [self presentViewController:alertController animated:YES completion:nil];
+    }
     
     
-    UIAlertController *alertController = [UIAlertController
-                                          alertControllerWithTitle:@""
-                                          message:@"Enter User Name"
-                                          preferredStyle:UIAlertControllerStyleAlert];
     
-    [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField)
-     {
-         textField.placeholder = @"eg. John Miller";
-     }];
     
-    UIAlertAction *okAction = [UIAlertAction
-                               actionWithTitle:NSLocalizedString(@"OK", @"OK action")
-                               style:UIAlertActionStyleDefault
-                               handler:^(UIAlertAction *action)
-                               {
-                                  UITextField *txtUserName = alertController.textFields.firstObject;
-                                   self.senderDisplayName = txtUserName.text;
-                                   self.senderId    = txtUserName.text;
-                                   [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
-                                       [self.collectionView reloadData];
-                                       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                                           [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
-                                       });
-                                       
-                                   }];
-                                   
-                               }];
-    [alertController addAction:okAction];
-    [self presentViewController:alertController animated:YES completion:nil];
     
     
     /**
@@ -161,8 +191,16 @@
      *  Note: this feature is mostly stable, but still experimental
      */
     self.collectionView.collectionViewLayout.springinessEnabled = [NSUserDefaults springinessSetting];
+    
 }
 
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string{
+    
+    NSString *finalString = [textField.text stringByReplacingCharactersInRange:range withString:string];
+    [okAction setEnabled:(finalString.length >= 5)];
+    return YES;
+}
 
 
 #pragma mark - Testing
@@ -356,17 +394,28 @@
      */
     [JSQSystemSoundPlayer jsq_playMessageSentSound];
     
+    // A list of extensions to check against
+    NSArray *imageExtensions = @[@"png", @"jpg", @"gif"]; //...
     
+    NSString *extension = [text pathExtension];
+    if([imageExtensions containsObject:extension])
+    {
+        NSURL *url = [NSURL URLWithString:text];
+        NSData *data = [NSData dataWithContentsOfURL:url];
+        UIImage *img = [[UIImage alloc] initWithData:data];
+        [self.demoData addPhotoMediaMessagewithImage:img];
+    }
+    else
+    {
+        JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
+                                                 senderDisplayName:senderDisplayName
+                                                              date:date
+                                                              text:text];
+        
+        [self.demoData.messages addObject:message];
+        
+    }
     
-   
-    
-    
-    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
-                                             senderDisplayName:senderDisplayName
-                                                          date:date
-                                                          text:text];
-    
-    [self.demoData.messages addObject:message];
     
     // going for the parsing
     PFObject *newMessage = [PFObject objectWithClassName:@"chatLog"];
@@ -414,7 +463,13 @@
     
     switch (buttonIndex) {
         case 0:
-            [self.demoData addPhotoMediaMessage];
+        {
+            UIImagePickerController * picker = [[UIImagePickerController alloc] init];
+            picker.delegate = self;
+            picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            [self presentViewController:picker animated:YES completion:nil];
+        }
+            
             break;
             
         case 1:
@@ -435,6 +490,13 @@
     [JSQSystemSoundPlayer jsq_playMessageSentSound];
     
     [self finishSendingMessageAnimated:YES];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    pickedImage = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+    [self.demoData addPhotoMediaMessagewithImage:pickedImage];
 }
 
 

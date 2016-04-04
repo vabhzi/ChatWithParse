@@ -230,8 +230,8 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    NSParameterAssert(self.senderId != nil);
-    NSParameterAssert(self.senderDisplayName != nil);
+//    NSParameterAssert(self.senderId != nil);
+//    NSParameterAssert(self.senderDisplayName != nil);
 
     [super viewWillAppear:animated];
     [self.view layoutIfNeeded];

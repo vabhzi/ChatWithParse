@@ -55,9 +55,12 @@
     /**
      *  You MUST set your senderId and display name
      */
-
-    self.senderId = kJSQDemoAvatarDisplayNameSquires;
-    self.senderDisplayName = kJSQDemoAvatarDisplayNameSquires;
+    NSUserDefaults *standerdDefaults = [NSUserDefaults standardUserDefaults];
+    if([standerdDefaults valueForKey:@"username"])
+    {
+        self.senderId = [standerdDefaults valueForKey:@"username"];
+        self.senderDisplayName = [standerdDefaults valueForKey:@"username"];
+    }
     
     self.inputToolbar.contentView.textView.pasteDelegate = self;
     
@@ -66,7 +69,10 @@
      */
     self.demoData = [[DemoModelData alloc] init];
     
-    
+    typeof(self) __weak weakSelf = self;
+    self.demoData.refreshHandler = ^{
+        [weakSelf.collectionView reloadData];
+    };
     /**
      *  You can set custom avatar sizes
      */
@@ -81,7 +87,7 @@
     self.showLoadEarlierMessagesHeader = NO;
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage jsq_defaultTypingIndicatorImage]
-                                                                              style:UIBarButtonItemStyleBordered
+                                                                              style:UIBarButtonItemStylePlain
                                                                              target:self
                                                                              action:@selector(receiveMessagePressed:)];
 
@@ -137,7 +143,7 @@
         [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
             [self.collectionView reloadData];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                //[self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
             });
             
         }];
@@ -241,8 +247,9 @@
     JSQMessage *copyMessage = [[self.demoData.messages lastObject] copy];
     
     if (!copyMessage) {
-        copyMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdJobs
-                                          displayName:kJSQDemoAvatarDisplayNameJobs
+        NSUserDefaults *standerdDefaults = [NSUserDefaults standardUserDefaults];
+        copyMessage = [JSQMessage messageWithSenderId:[standerdDefaults valueForKey:@"username"]
+                                          displayName:[standerdDefaults valueForKey:@"username"]
                                                  text:@"First received!"];
     }
     
@@ -403,7 +410,12 @@
         NSURL *url = [NSURL URLWithString:text];
         NSData *data = [NSData dataWithContentsOfURL:url];
         UIImage *img = [[UIImage alloc] initWithData:data];
-        [self.demoData addPhotoMediaMessagewithImage:img];
+        typeof(self) __weak weakSelf = self;
+        [self.demoData addPhotoMediaMessagewithImage:img withCompletionHandler:^(BOOL isSuccess) {
+            [weakSelf.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+                [weakSelf.collectionView reloadData];
+            }];
+        }];
     }
     else
     {
@@ -445,58 +457,27 @@
 {
     [self.inputToolbar.contentView.textView resignFirstResponder];
 
-    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"Media messages"
-                                                       delegate:self
-                                              cancelButtonTitle:@"Cancel"
-                                         destructiveButtonTitle:nil
-                                              otherButtonTitles:@"Send photo", @"Send location", @"Send video", nil];
-    
-    [sheet showFromToolbar:self.inputToolbar];
+    UIImagePickerController * picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [self presentViewController:picker animated:YES completion:nil];
 }
 
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
-{
-    if (buttonIndex == actionSheet.cancelButtonIndex) {
-        [self.inputToolbar.contentView.textView becomeFirstResponder];
-        return;
-    }
-    
-    switch (buttonIndex) {
-        case 0:
-        {
-            UIImagePickerController * picker = [[UIImagePickerController alloc] init];
-            picker.delegate = self;
-            picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-            [self presentViewController:picker animated:YES completion:nil];
-        }
-            
-            break;
-            
-        case 1:
-        {
-            __weak UICollectionView *weakView = self.collectionView;
-            
-            [self.demoData addLocationMediaMessageCompletion:^{
-                [weakView reloadData];
-            }];
-        }
-            break;
-            
-        case 2:
-            [self.demoData addVideoMediaMessage];
-            break;
-    }
-    
-    [JSQSystemSoundPlayer jsq_playMessageSentSound];
-    
-    [self finishSendingMessageAnimated:YES];
-}
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     [picker dismissViewControllerAnimated:YES completion:nil];
     pickedImage = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
-    [self.demoData addPhotoMediaMessagewithImage:pickedImage];
+    
+    typeof(self) __weak weakSelf = self;
+    
+    
+    [self.demoData addPhotoMediaMessagewithImage:pickedImage withCompletionHandler:^(BOOL i) {
+        [weakSelf.demoData loadLocalChatwithCompletionHandler:^(BOOL j) {
+            [JSQSystemSoundPlayer jsq_playMessageSentSound];
+            [weakSelf.collectionView reloadData];
+        }];
+    }];
 }
 
 
@@ -688,14 +669,7 @@
 
 - (void)customAction:(id)sender
 {
-    NSLog(@"Custom action received! Sender: %@", sender);
 
-    [[[UIAlertView alloc] initWithTitle:@"Custom Action"
-                               message:nil
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                      otherButtonTitles:nil]
-     show];
 }
 
 

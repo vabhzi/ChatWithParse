@@ -18,12 +18,10 @@
 
 #import "DemoModelData.h"
 
-#import <Parse.h>
 #import "NSUserDefaults+DemoSettings.h"
-
+#import <Parse.h>
 
 #define MAX_ENTRIES_LOADED 25
-
 
 /**
  *  This is for demo/testing purposes only.
@@ -33,237 +31,192 @@
 
 @implementation DemoModelData
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        
-        if ([NSUserDefaults emptyMessagesSetting]) {
-            self.messages = [NSMutableArray new];
-        }
-        else {
-            //[self loadFakeMessages];
-            self.messages = [NSMutableArray new];
-            //[self loadLocalChat];
-        }
-        
-        
-        /**
-         *  Create avatar images once.
-         *
-         *  Be sure to create your avatars one time and reuse them for good performance.
-         *
-         *  If you are not using avatars, ignore this.
-         */
-        JSQMessagesAvatarImage *jsqImage = [JSQMessagesAvatarImageFactory avatarImageWithUserInitials:@"JSQ"
-                                                                                      backgroundColor:[UIColor colorWithWhite:0.85f alpha:1.0f]
-                                                                                            textColor:[UIColor colorWithWhite:0.60f alpha:1.0f]
-                                                                                                 font:[UIFont systemFontOfSize:14.0f]
-                                                                                             diameter:kJSQMessagesCollectionViewAvatarSizeDefault];
-        
-        JSQMessagesAvatarImage *cookImage = [JSQMessagesAvatarImageFactory avatarImageWithImage:[UIImage imageNamed:@"demo_avatar_cook"]
-                                                                                       diameter:kJSQMessagesCollectionViewAvatarSizeDefault];
-        
-        JSQMessagesAvatarImage *jobsImage = [JSQMessagesAvatarImageFactory avatarImageWithImage:[UIImage imageNamed:@"demo_avatar_jobs"]
-                                                                                       diameter:kJSQMessagesCollectionViewAvatarSizeDefault];
-        
-        JSQMessagesAvatarImage *wozImage = [JSQMessagesAvatarImageFactory avatarImageWithImage:[UIImage imageNamed:@"demo_avatar_woz"]
-                                                                                      diameter:kJSQMessagesCollectionViewAvatarSizeDefault];
-        
-        self.avatars = @{ kJSQDemoAvatarIdSquires : jsqImage,
-                          kJSQDemoAvatarIdCook : cookImage,
-                          kJSQDemoAvatarIdJobs : jobsImage,
-                          kJSQDemoAvatarIdWoz : wozImage };
-        
-        
-        self.users = @{ kJSQDemoAvatarIdJobs : kJSQDemoAvatarDisplayNameJobs,
-                        kJSQDemoAvatarIdCook : kJSQDemoAvatarDisplayNameCook,
-                        kJSQDemoAvatarIdWoz : kJSQDemoAvatarDisplayNameWoz,
-                        kJSQDemoAvatarIdSquires : kJSQDemoAvatarDisplayNameSquires };
-        
-        
-        /**
-         *  Create message bubble images objects.
-         *
-         *  Be sure to create your bubble images one time and reuse them for good performance.
-         *
-         */
-        JSQMessagesBubbleImageFactory *bubbleFactory = [[JSQMessagesBubbleImageFactory alloc] init];
-        
-        self.outgoingBubbleImageData = [bubbleFactory outgoingMessagesBubbleImageWithColor:[UIColor jsq_messageBubbleLightGrayColor]];
-        self.incomingBubbleImageData = [bubbleFactory incomingMessagesBubbleImageWithColor:[UIColor jsq_messageBubbleGreenColor]];
+- (instancetype)init {
+  self = [super init];
+  if (self) {
+
+    if ([NSUserDefaults emptyMessagesSetting]) {
+      self.messages = [NSMutableArray new];
+    } else {
+      self.messages = [NSMutableArray new];
     }
-    
-    return self;
+
+    /**
+     *  Create message bubble images objects.
+     *
+     *  Be sure to create your bubble images one time and reuse them for good
+     * performance.
+     *
+     */
+    JSQMessagesBubbleImageFactory *bubbleFactory =
+        [[JSQMessagesBubbleImageFactory alloc] init];
+
+    self.outgoingBubbleImageData =
+        [bubbleFactory outgoingMessagesBubbleImageWithColor:
+                           [UIColor jsq_messageBubbleLightGrayColor]];
+    self.incomingBubbleImageData = [bubbleFactory
+        incomingMessagesBubbleImageWithColor:[UIColor
+                                                 jsq_messageBubbleGreenColor]];
+  }
+
+  return self;
 }
 
 #pragma mark - Parse
 
-- (void)loadLocalChatwithCompletionHandler:(void (^)(BOOL))completionHandler
-{
-    NSMutableArray *arrTempMsg = [NSMutableArray new];
-    PFQuery *query = [PFQuery queryWithClassName:@"chatLog"];
-    
-    
-    // If no objects are loaded in memory, we look to the cache first to fill the table
-    // and then subsequently do a query against the network.
-//    if ([self.messages count] == 0) {
-//        query.cachePolicy = kPFCachePolicyCacheThenNetwork;
-//        [query orderByAscending:@"createdAt"];
-//        NSLog(@"Trying to retrieve from cache");
-//        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-//            if (!error) {
-//                // The find succeeded.
-//                NSLog(@"Successfully retrieved %lu chats from cache.", (unsigned long)objects.count);
-//                [arrTempMsg removeAllObjects];
-//                [arrTempMsg addObjectsFromArray:objects];
-//                [self.messages removeAllObjects];
-//                for (PFObject *obj in arrTempMsg) {
-//                    
-//                    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:[obj valueForKey:@"sender"]
-//                                                             senderDisplayName:[obj valueForKey:@"sender"]
-//                                                                          date:[obj objectForKey:@"date"]
-//                                                                          text:[obj valueForKey:@"message"]];
-//                    [self.messages addObject:message];
-//                    
-//                }
-//                completionHandler(YES);
-//            } else {
-//                // Log details of the failure
-//                NSLog(@"Error: %@ %@", error, [error userInfo]);
-//            }
-//        }];
-//    }
-    __block int totalNumberOfEntries = 0;
-    [query orderByAscending:@"createdAt"];
-    [query countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
-        if (!error) {
-            // The count request succeeded. Log the count
-            NSLog(@"There are currently %d entries", number);
-            totalNumberOfEntries = number;
-           // if (totalNumberOfEntries > [arrTempMsg count])
-            {
-                NSLog(@"Retrieving data");
-                NSInteger theLimit;
-                if (totalNumberOfEntries-[arrTempMsg count]>MAX_ENTRIES_LOADED) {
-                    theLimit = MAX_ENTRIES_LOADED;
-                }
-                else {
-                    theLimit = totalNumberOfEntries-[arrTempMsg count];
-                }
-                //query.limit = theLimit;
-                [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-                    if (!error) {
-                        // The find succeeded.
-                        NSLog(@"Successfully retrieved %lu chats.", (unsigned long)objects.count);
-                        [arrTempMsg addObjectsFromArray:objects];
-                        [self.messages removeAllObjects];
-                        for (PFObject *obj in arrTempMsg) {
-                            if([obj valueForKey:@"image"])
-                            {
-                                PFFile *file = [obj valueForKey:@"image"];
-                                //NSLog( @"-=== %@",[obj valueForKey:@"image"]);
-                                [file getDataInBackgroundWithBlock:^(NSData *data, NSError *error) {
-                                    if (!error) {
-                                        UIImage *image = [UIImage imageWithData:data];
-                                        JSQPhotoMediaItem *photoItem = [[JSQPhotoMediaItem alloc] initWithImage:image];
-                                        JSQMessage *photoMessage = [JSQMessage messageWithSenderId:[obj valueForKey:@"sender"]
-                                                                                       displayName:[obj valueForKey:@"sender"]
-                                                                                             media:photoItem];
-                                        [self.messages addObject:photoMessage];
-                                    }
-                                }];
-                                
-                            }
-                            else
-                            {
-                            
-                            JSQMessage *message = [[JSQMessage alloc] initWithSenderId:[obj valueForKey:@"sender"]
-                                                                     senderDisplayName:[obj valueForKey:@"sender"]
-                                                                                  date:[obj objectForKey:@"date"]
-                                                                                  text:[obj valueForKey:@"message"]];
-                            [self.messages addObject:message];
-                            }
-                            
-                        }
-                        completionHandler(YES);
-                    } else {
-                        // Log details of the failure
-                        NSLog(@"Error: %@ %@", error, [error userInfo]);
-                    }
-                }];
-            }
-            
+- (void)loadLocalChatwithCompletionHandler:(void (^)(BOOL))completionHandler {
+  NSMutableArray *arrTempMsg = [NSMutableArray new];
+  PFQuery *query = [PFQuery queryWithClassName:@"chatLog"];
+  __block int totalNumberOfEntries = 0;
+  [query orderByAscending:@"createdAt"];
+  [query countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
+    if (!error) {
+      // The count request succeeded. Log the count
+      NSLog(@"There are currently %d entries", number);
+      totalNumberOfEntries = number;
+      // if (totalNumberOfEntries > [arrTempMsg count])
+      {
+        NSLog(@"Retrieving data");
+        NSInteger theLimit;
+        if (totalNumberOfEntries - [arrTempMsg count] > MAX_ENTRIES_LOADED) {
+          theLimit = MAX_ENTRIES_LOADED;
         } else {
-            // The request failed, we'll keep the chatData count?
-            number = (int)[self.messages count];
+          theLimit = totalNumberOfEntries - [arrTempMsg count];
         }
-    }];
-}
+        // query.limit = theLimit;
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects,
+                                                  NSError *error) {
+          if (!error) {
+            // The find succeeded.
+            NSLog(@"Successfully retrieved %lu chats.",
+                  (unsigned long)objects.count);
+            [arrTempMsg addObjectsFromArray:objects];
+            [self.messages removeAllObjects];
+            for (int i = 0; i < arrTempMsg.count; i++) {
+              PFObject *obj = arrTempMsg[i];
+              if ([obj objectForKey:@"image"]) {
+                PFFile *file = [obj valueForKey:@"image"];
 
+                UIImage *image = [UIImage imageNamed:@"loading"];
+                JSQPhotoMediaItem *photoItem =
+                    [[JSQPhotoMediaItem alloc] initWithImage:image];
+                JSQMessage *photoMessage = [JSQMessage
+                    messageWithSenderId:[obj valueForKey:@"sender"] ?: @"test"
+                            displayName:[obj valueForKey:@"sender"] ?: @"test"
+                                  media:photoItem];
 
-- (void)addPhotoMediaMessagewithImage :(UIImage *)image
-{
-    // Vaibhav
-    // Need to open Gallary
-    JSQPhotoMediaItem *photoItem = [[JSQPhotoMediaItem alloc] initWithImage:image];
-    JSQMessage *photoMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdSquires
-                                                   displayName:kJSQDemoAvatarDisplayNameSquires
-                                                         media:photoItem];
-    [self.messages addObject:photoMessage];
-    
-    NSData* data = UIImageJPEGRepresentation(image, 0.5f);
-    PFFile *imageFile = [PFFile fileWithName:@"Image.jpg" data:data];
-    
-    // Save the image to Parse
-    
-    [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-        if (!error) {
-            NSUserDefaults *standerdDefault = [NSUserDefaults new];
-            // The image has now been uploaded to Parse. Associate it with a new object
-            PFObject* newPhotoObject = [PFObject objectWithClassName:@"chatLog"];
-            [newPhotoObject setObject:imageFile forKey:@"image"];
-            [newPhotoObject setObject:[standerdDefault valueForKey:@"username"] forKey:@"sender"];
-            [newPhotoObject setObject:[NSDate date] forKey:@"date"];
-            
-            [newPhotoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                if (!error) {
-                    NSLog(@"Saved");
+                [self.messages addObject:photoMessage];
+                [file getDataInBackgroundWithBlock:^(NSData *data,
+                                                     NSError *error) {
+                  if (!error) {
+                    UIImage *image = [UIImage imageWithData:data];
+                    JSQPhotoMediaItem *photoItem =
+                        [[JSQPhotoMediaItem alloc] initWithImage:image];
+                    JSQMessage *photoMessage1 = [JSQMessage
+                        messageWithSenderId:[obj valueForKey:@"sender"]
+                                displayName:[obj valueForKey:@"sender"]
+                                      media:photoItem];
+                    [self.messages replaceObjectAtIndex:i
+                                             withObject:photoMessage1];
+                    if (_refreshHandler) {
+                      _refreshHandler();
+                    };
+                  }
+                }];
+              } else {
+                NSString *text = [obj valueForKey:@"message"];
+                if ([text hasSuffix:@"png"] || [text hasSuffix:@"jpeg"] ||
+                    [text hasSuffix:@"jpg"] || [text hasSuffix:@"gif"]) {
+                  UIImage *image = [UIImage imageNamed:@"loading"];
+                  JSQPhotoMediaItem *photoItem =
+                      [[JSQPhotoMediaItem alloc] initWithImage:image];
+                  JSQMessage *photoMessage = [JSQMessage
+                      messageWithSenderId:[obj valueForKey:@"sender"]
+                              displayName:[obj valueForKey:@"sender"]
+                                    media:photoItem];
+
+                  [self.messages addObject:photoMessage];
+                  dispatch_async(dispatch_get_main_queue(), ^{
+                    NSData *data = [NSData
+                        dataWithContentsOfURL:[NSURL URLWithString:text]];
+                    UIImage *image = [UIImage imageWithData:data];
+                    JSQPhotoMediaItem *photoItem =
+                        [[JSQPhotoMediaItem alloc] initWithImage:image];
+                    JSQMessage *photoMessage1 = [JSQMessage
+                        messageWithSenderId:[obj valueForKey:@"sender"]
+                                displayName:[obj valueForKey:@"sender"]
+                                      media:photoItem];
+                    [self.messages replaceObjectAtIndex:i
+                                             withObject:photoMessage1];
+                    if (_refreshHandler) {
+                      _refreshHandler();
+                    }
+
+                  });
+                } else {
+                  JSQMessage *message = [[JSQMessage alloc]
+                       initWithSenderId:[obj valueForKey:@"sender"]
+                      senderDisplayName:[obj valueForKey:@"sender"]
+                                   date:[obj objectForKey:@"date"]
+                                   text:text];
+                  [self.messages addObject:message];
                 }
-                else{
-                    // Error
-                    NSLog(@"Error: %@ %@", error, [error userInfo]);
-                }
-            }];
-        }
-    }];
-    
-    
+              }
+            }
+            completionHandler(YES);
+          } else {
+            // Log details of the failure
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+          }
+        }];
+      }
+
+    } else {
+      // The request failed, we'll keep the chatData count?
+      number = (int)[self.messages count];
+    }
+  }];
 }
 
-- (void)addLocationMediaMessageCompletion:(JSQLocationMediaItemCompletionBlock)completion
-{
-    CLLocation *ferryBuildingInSF = [[CLLocation alloc] initWithLatitude:37.795313 longitude:-122.393757];
-    
-    JSQLocationMediaItem *locationItem = [[JSQLocationMediaItem alloc] init];
-    [locationItem setLocation:ferryBuildingInSF withCompletionHandler:completion];
-    
-    JSQMessage *locationMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdSquires
-                                                      displayName:kJSQDemoAvatarDisplayNameSquires
-                                                            media:locationItem];
-    [self.messages addObject:locationMessage];
-}
+- (void)addPhotoMediaMessagewithImage:(UIImage *)image
+                withCompletionHandler:(void (^)(BOOL))completionHandler {
 
-- (void)addVideoMediaMessage
-{
-    // don't have a real video, just pretending
-    NSURL *videoURL = [NSURL URLWithString:@"file://"];
-    
-    JSQVideoMediaItem *videoItem = [[JSQVideoMediaItem alloc] initWithFileURL:videoURL isReadyToPlay:YES];
-    JSQMessage *videoMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdSquires
-                                                   displayName:kJSQDemoAvatarDisplayNameSquires
-                                                         media:videoItem];
-    [self.messages addObject:videoMessage];
+    NSUserDefaults *standerdDefaults = [NSUserDefaults standardUserDefaults];
+  JSQPhotoMediaItem *photoItem =
+      [[JSQPhotoMediaItem alloc] initWithImage:image];
+  JSQMessage *photoMessage =
+      [JSQMessage messageWithSenderId:[standerdDefaults valueForKey:@"username"]
+                          displayName:[standerdDefaults valueForKey:@"username"]
+                                media:photoItem];
+  [self.messages addObject:photoMessage];
+
+  NSData *data = UIImageJPEGRepresentation(image, 0.5f);
+  PFFile *imageFile = [PFFile fileWithName:@"Image.jpg" data:data];
+
+  // Save the image to Parse
+  [imageFile saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+    if (!error) {
+      NSUserDefaults *standerdDefault = [NSUserDefaults standardUserDefaults];
+      // The image has now been uploaded to Parse. Associate it with a new
+      // object
+      PFObject *newPhotoObject = [PFObject objectWithClassName:@"chatLog"];
+      [newPhotoObject setObject:imageFile forKey:@"image"];
+      [newPhotoObject setObject:[standerdDefault valueForKey:@"username"]
+                         forKey:@"sender"];
+      [newPhotoObject setObject:[NSDate date] forKey:@"date"];
+
+      [newPhotoObject
+          saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+              completionHandler(YES);
+            if (!error) {
+              NSLog(@"Saved");
+            } else {
+              // Error
+              NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+          }];
+    }
+  }];
 }
 
 @end

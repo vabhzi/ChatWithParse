@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "D6212C4CEE5FB70A8169D11068648A93DEC9217A",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "F76B6276EA0CDF55F41BD194639DD290602247F7" : 0,
+    "D6212C4CEE5FB70A8169D11068648A93DEC9217A" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "AC33AF06-6095-44A5-A1F9-1D15CA43CA9C",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "F76B6276EA0CDF55F41BD194639DD290602247F7" : "",
+    "D6212C4CEE5FB70A8169D11068648A93DEC9217A" : "parseDemo\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "GroupChatDemo",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "GroupChatDemo.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/jugalab\/ChatWithParse.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D6212C4CEE5FB70A8169D11068648A93DEC9217A"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/MyApp22\/MyPrototype1.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "F76B6276EA0CDF55F41BD194639DD290602247F7"
+    }
+  ]
+}

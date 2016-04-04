@@ -20,60 +20,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "GroupChatDemo/DemoMessagesViewController.m"
-            timestampString = "481422464.62412"
+            timestampString = "481484237.7605"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "403"
-            endingLineNumber = "403"
+            startingLineNumber = "407"
+            endingLineNumber = "407"
             landmarkName = "-didPressSendButton:withMessageText:senderId:senderDisplayName:date:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "GroupChatDemo/DemoModelData.m"
-            timestampString = "481432521.429764"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "230"
-            endingLineNumber = "230"
-            landmarkName = "-addPhotoMediaMessagewithImage:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "GroupChatDemo/DemoModelData.m"
-            timestampString = "481432521.429764"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "163"
-            endingLineNumber = "163"
-            landmarkName = "-loadLocalChatwithCompletionHandler:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "GroupChatDemo/DemoModelData.m"
-            timestampString = "481432521.429764"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "167"
-            endingLineNumber = "167"
-            landmarkName = "-loadLocalChatwithCompletionHandler:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -116,7 +68,7 @@
                   moduleName = "GroupChatDemo"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/vabhzi/Desktop/GroupChatDemo/Pods/JSQMessagesViewController/JSQMessagesViewController/Model/JSQMessage.m"
-                  timestampString = "481432710.164844"
+                  timestampString = "481481317.018975"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "76"
@@ -131,7 +83,7 @@
                   moduleName = "GroupChatDemo"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/vabhzi/Desktop/GroupChatDemo/Pods/JSQMessagesViewController/JSQMessagesViewController/Model/JSQMessage.m"
-                  timestampString = "481432710.164978"
+                  timestampString = "481481317.019178"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "76"

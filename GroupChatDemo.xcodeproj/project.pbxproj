@@ -12,10 +12,9 @@
 		136282E81CB0EFED0076A401 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 136282E61CB0EFED0076A401 /* Main.storyboard */; };
 		136282EA1CB0EFED0076A401 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 136282E91CB0EFED0076A401 /* Assets.xcassets */; };
 		136282ED1CB0EFED0076A401 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 136282EB1CB0EFED0076A401 /* LaunchScreen.storyboard */; };
-		13A49D7F1CB118B40027E5A9 /* DemoMessagesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D7E1CB118B40027E5A9 /* DemoMessagesViewController.m */; };
-		13A49D821CB118E70027E5A9 /* DemoModelData.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D811CB118E70027E5A9 /* DemoModelData.m */; };
+		13A49D7F1CB118B40027E5A9 /* GroupChatViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D7E1CB118B40027E5A9 /* GroupChatViewController.m */; };
+		13A49D821CB118E70027E5A9 /* GroupChatModelData.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D811CB118E70027E5A9 /* GroupChatModelData.m */; };
 		13A49D851CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D841CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.m */; };
-		13A49D881CB11D5F0027E5A9 /* Message.m in Sources */ = {isa = PBXBuildFile; fileRef = 13A49D871CB11D5F0027E5A9 /* Message.m */; };
 		F4CA797FDBFEE874FB8B0892 /* libPods-GroupChatDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 796137902479C51F1758D323 /* libPods-GroupChatDemo.a */; };
 /* End PBXBuildFile section */
 
@@ -28,14 +27,12 @@
 		136282E91CB0EFED0076A401 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		136282EC1CB0EFED0076A401 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		136282EE1CB0EFED0076A401 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		13A49D7D1CB118B40027E5A9 /* DemoMessagesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoMessagesViewController.h; sourceTree = "<group>"; };
-		13A49D7E1CB118B40027E5A9 /* DemoMessagesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoMessagesViewController.m; sourceTree = "<group>"; };
-		13A49D801CB118E70027E5A9 /* DemoModelData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoModelData.h; sourceTree = "<group>"; };
-		13A49D811CB118E70027E5A9 /* DemoModelData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoModelData.m; sourceTree = "<group>"; };
+		13A49D7D1CB118B40027E5A9 /* GroupChatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GroupChatViewController.h; sourceTree = "<group>"; };
+		13A49D7E1CB118B40027E5A9 /* GroupChatViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GroupChatViewController.m; sourceTree = "<group>"; };
+		13A49D801CB118E70027E5A9 /* GroupChatModelData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GroupChatModelData.h; sourceTree = "<group>"; };
+		13A49D811CB118E70027E5A9 /* GroupChatModelData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GroupChatModelData.m; sourceTree = "<group>"; };
 		13A49D831CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSUserDefaults+DemoSettings.h"; sourceTree = "<group>"; };
 		13A49D841CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSUserDefaults+DemoSettings.m"; sourceTree = "<group>"; };
-		13A49D861CB11D5F0027E5A9 /* Message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Message.h; sourceTree = "<group>"; };
-		13A49D871CB11D5F0027E5A9 /* Message.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Message.m; sourceTree = "<group>"; };
 		6F0DC47D57E6992DA85C5C6C /* Pods-GroupChatDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GroupChatDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-GroupChatDemo/Pods-GroupChatDemo.release.xcconfig"; sourceTree = "<group>"; };
 		796137902479C51F1758D323 /* libPods-GroupChatDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-GroupChatDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B735EE9FE14DEFE3A877522D /* Pods-GroupChatDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GroupChatDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-GroupChatDemo/Pods-GroupChatDemo.debug.xcconfig"; sourceTree = "<group>"; };
@@ -76,10 +73,10 @@
 			children = (
 				136282E01CB0EFED0076A401 /* AppDelegate.h */,
 				136282E11CB0EFED0076A401 /* AppDelegate.m */,
-				13A49D7D1CB118B40027E5A9 /* DemoMessagesViewController.h */,
-				13A49D7E1CB118B40027E5A9 /* DemoMessagesViewController.m */,
-				13A49D801CB118E70027E5A9 /* DemoModelData.h */,
-				13A49D811CB118E70027E5A9 /* DemoModelData.m */,
+				13A49D7D1CB118B40027E5A9 /* GroupChatViewController.h */,
+				13A49D7E1CB118B40027E5A9 /* GroupChatViewController.m */,
+				13A49D801CB118E70027E5A9 /* GroupChatModelData.h */,
+				13A49D811CB118E70027E5A9 /* GroupChatModelData.m */,
 				13A49D831CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.h */,
 				13A49D841CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.m */,
 				136282E61CB0EFED0076A401 /* Main.storyboard */,
@@ -87,8 +84,6 @@
 				136282EB1CB0EFED0076A401 /* LaunchScreen.storyboard */,
 				136282EE1CB0EFED0076A401 /* Info.plist */,
 				136282DD1CB0EFED0076A401 /* Supporting Files */,
-				13A49D861CB11D5F0027E5A9 /* Message.h */,
-				13A49D871CB11D5F0027E5A9 /* Message.m */,
 			);
 			path = GroupChatDemo;
 			sourceTree = "<group>";
@@ -241,9 +236,8 @@
 			files = (
 				136282E21CB0EFED0076A401 /* AppDelegate.m in Sources */,
 				136282DF1CB0EFED0076A401 /* main.m in Sources */,
-				13A49D881CB11D5F0027E5A9 /* Message.m in Sources */,
-				13A49D821CB118E70027E5A9 /* DemoModelData.m in Sources */,
-				13A49D7F1CB118B40027E5A9 /* DemoMessagesViewController.m in Sources */,
+				13A49D821CB118E70027E5A9 /* GroupChatModelData.m in Sources */,
+				13A49D7F1CB118B40027E5A9 /* GroupChatViewController.m in Sources */,
 				13A49D851CB1190A0027E5A9 /* NSUserDefaults+DemoSettings.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

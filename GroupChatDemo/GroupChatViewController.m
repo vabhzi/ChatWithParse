@@ -1,52 +1,37 @@
 //
-//  Created by Jesse Squires
-//  http://www.jessesquires.com
+//  GroupChatViewController.m
+//  GroupChatDemo
 //
-//
-//  Documentation
-//  http://cocoadocs.org/docsets/JSQMessagesViewController
-//
-//
-//  GitHub
-//  https://github.com/jessesquires/JSQMessagesViewController
-//
-//
-//  License
-//  Copyright (c) 2014 Jesse Squires
-//  Released under an MIT license: http://opensource.org/licenses/MIT
+//  Created by Vaibhav Mistry on 4/3/16.
+//  Copyright © 2016 Vaibhav Mistry. All rights reserved.
 //
 
-#import "DemoMessagesViewController.h"
+#import "GroupChatViewController.h"
 #import "AppDelegate.h"
 
-@interface DemoMessagesViewController()
+@interface GroupChatViewController()
 {
     UIAlertAction *okAction;
     UIImage *pickedImage;
 }
 @end
 
-@implementation DemoMessagesViewController
+@implementation GroupChatViewController
 
 #pragma mark - View lifecycle
-
-/**
- *  Override point for customization.
- *
- *  Customize your view.
- *  Look at the properties on `JSQMessagesViewController` and `JSQMessagesCollectionView` to see what is possible.
- *
- *  Customize your layout.
- *  Look at the properties on `JSQMessagesCollectionViewFlowLayout` to see what is possible.
- */
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
     AppDelegate *appdelegate = [[UIApplication sharedApplication]delegate];
     appdelegate.refreshHandler = ^{
-        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+        [self.chatData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
             [self.collectionView reloadData];
+            if(_chatData.messages.count)
+            {
+                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_chatData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+            }
+            
         }];
     };
     
@@ -64,72 +49,39 @@
     
     self.inputToolbar.contentView.textView.pasteDelegate = self;
     
-    /**
-     *  Load up our fake data for the demo
-     */
-    self.demoData = [[DemoModelData alloc] init];
+    self.chatData = [[GroupChatModelData alloc] init];
     
     typeof(self) __weak weakSelf = self;
-    self.demoData.refreshHandler = ^{
+    typeof(_chatData) __weak weakChat = _chatData;
+    self.chatData.refreshHandler = ^{
         [weakSelf.collectionView reloadData];
+        if(weakChat.messages.count)
+        {
+            [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_chatData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+        }
     };
-    /**
-     *  You can set custom avatar sizes
-     */
-    if (![NSUserDefaults incomingAvatarSetting]) {
-        self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
-    }
     
-    if (![NSUserDefaults outgoingAvatarSetting]) {
-        self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
-    }
     
     self.showLoadEarlierMessagesHeader = NO;
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage jsq_defaultTypingIndicatorImage]
-                                                                              style:UIBarButtonItemStylePlain
-                                                                             target:self
-                                                                             action:@selector(receiveMessagePressed:)];
-
+    
     /**
      *  Register custom menu actions for cells.
      */
     [JSQMessagesCollectionViewCell registerMenuAction:@selector(customAction:)];
     [UIMenuController sharedMenuController].menuItems = @[ [[UIMenuItem alloc] initWithTitle:@"Custom Action"
                                                                                       action:@selector(customAction:)] ];
-
+    
     /**
      *  OPT-IN: allow cells to be deleted
      */
     [JSQMessagesCollectionViewCell registerMenuAction:@selector(delete:)];
-
-    /**
-     *  Customize your toolbar buttons
-     *
-     *  self.inputToolbar.contentView.leftBarButtonItem = custom button or nil to remove
-     *  self.inputToolbar.contentView.rightBarButtonItem = custom button or nil to remove
-     */
-
-    /**
-     *  Set a maximum height for the input toolbar
-     *
-     *  self.inputToolbar.maximumHeight = 150;
-     */
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    
-    
-    
-    
-    if (self.delegateModal) {
-        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
-                                                                                              target:self
-                                                                                              action:@selector(closePressed:)];
-    }
-    //[self.demoData loadLocalChat];
     [self.collectionView reloadData];
 }
 
@@ -140,245 +92,78 @@
     
     if([standerdDefaults valueForKey:@"username"])
     {
-        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+        /**
+         *  Load previous messsages for the first time application runs
+         */
+        [self.chatData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
             [self.collectionView reloadData];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+                /**
+                 *  Scrolling to the latest message at bottom
+                 */
+                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_chatData.messages.count-1 inSection:0]
+                                            atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
             });
             
         }];
     }
     else
     {
-        UIAlertController *alertController = [UIAlertController
-                                              alertControllerWithTitle:@""
-                                              message:@"Enter User Name"
-                                              preferredStyle:UIAlertControllerStyleAlert];
+        /**
+         *  Input Alert for entering Username for Chat
+         */
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@""
+                                                                                 message:@"Enter Username"
+                                                                          preferredStyle:UIAlertControllerStyleAlert];
         
         [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField)
          {
              textField.delegate = self;
-             textField.placeholder = @"eg. John Miller";
+             textField.placeholder = @"eg. John Dough";
          }];
         
-        okAction = [UIAlertAction
-                    actionWithTitle:NSLocalizedString(@"OK", @"OK action")
-                    style:UIAlertActionStyleDefault
-                    handler:^(UIAlertAction *action)
-                    {
-                        
-                        UITextField *txtUserName = alertController.textFields.firstObject;
-                        NSUserDefaults *standerdDefaults = [NSUserDefaults new];
-                        [standerdDefaults setValue:txtUserName.text forKey:@"username"];
-                        self.senderDisplayName = txtUserName.text;
-                        self.senderId    = txtUserName.text;
-                        [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
-                            [self.collectionView reloadData];
-                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_demoData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
-                            });
-                            
-                        }];
-                        
-                    }];
+        okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK action")
+                                            style:UIAlertActionStyleDefault
+                                          handler:^(UIAlertAction *action) {
+                                              
+                                              /**
+                                               *  Setting username in the NSUserDefaults to use while re-login
+                                               */
+                                              
+                                              UITextField *txtUserName = alertController.textFields.firstObject;
+                                             
+                                              NSUserDefaults *standerdDefaults = [NSUserDefaults new];
+                                              [standerdDefaults setValue:txtUserName.text forKey:@"username"];
+                                              self.senderDisplayName = txtUserName.text;
+                                              self.senderId    = txtUserName.text;
+                                              
+                                              [self.chatData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+                                                  [self.collectionView reloadData];
+                                                  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                                                     
+                                                      /**
+                                                       *  Scrolling to the latest message at bottom
+                                                       */
+                                                      [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:_chatData.messages.count-1 inSection:0] atScrollPosition:UICollectionViewScrollPositionBottom animated:YES];
+                                                  });
+                                                  
+                                              }];
+                                              
+                                          }];
         okAction.enabled = NO;
         [alertController addAction:okAction];
         [self presentViewController:alertController animated:YES completion:nil];
     }
-    
-    
-    
-    
-    
-    
-    /**
-     *  Enable/disable springy bubbles, default is NO.
-     *  You must set this from `viewDidAppear:`
-     *  Note: this feature is mostly stable, but still experimental
-     */
     self.collectionView.collectionViewLayout.springinessEnabled = [NSUserDefaults springinessSetting];
     
 }
 
-
+#pragma mark - UITextField Delegate Method
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string{
     
     NSString *finalString = [textField.text stringByReplacingCharactersInRange:range withString:string];
     [okAction setEnabled:(finalString.length >= 5)];
     return YES;
-}
-
-
-#pragma mark - Testing
-
-- (void)pushMainViewController
-{
-    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    UINavigationController *nc = [sb instantiateInitialViewController];
-    [self.navigationController pushViewController:nc.topViewController animated:YES];
-}
-
-
-#pragma mark - Actions
-
-- (void)receiveMessagePressed:(UIBarButtonItem *)sender
-{
-    /**
-     *  DEMO ONLY
-     *
-     *  The following is simply to simulate received messages for the demo.
-     *  Do not actually do this.
-     */
-    
-    
-    /**
-     *  Show the typing indicator to be shown
-     */
-    self.showTypingIndicator = !self.showTypingIndicator;
-    
-    /**
-     *  Scroll to actually view the indicator
-     */
-    [self scrollToBottomAnimated:YES];
-    
-    /**
-     *  Copy last sent message, this will be the new "received" message
-     */
-    JSQMessage *copyMessage = [[self.demoData.messages lastObject] copy];
-    
-    if (!copyMessage) {
-        NSUserDefaults *standerdDefaults = [NSUserDefaults standardUserDefaults];
-        copyMessage = [JSQMessage messageWithSenderId:[standerdDefaults valueForKey:@"username"]
-                                          displayName:[standerdDefaults valueForKey:@"username"]
-                                                 text:@"First received!"];
-    }
-    
-    /**
-     *  Allow typing indicator to show
-     */
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        NSMutableArray *userIds = [[self.demoData.users allKeys] mutableCopy];
-        [userIds removeObject:self.senderId];
-        NSString *randomUserId = userIds[arc4random_uniform((int)[userIds count])];
-        
-        JSQMessage *newMessage = nil;
-        id<JSQMessageMediaData> newMediaData = nil;
-        id newMediaAttachmentCopy = nil;
-        
-        if (copyMessage.isMediaMessage) {
-            /**
-             *  Last message was a media message
-             */
-            id<JSQMessageMediaData> copyMediaData = copyMessage.media;
-            
-            if ([copyMediaData isKindOfClass:[JSQPhotoMediaItem class]]) {
-                JSQPhotoMediaItem *photoItemCopy = [((JSQPhotoMediaItem *)copyMediaData) copy];
-                photoItemCopy.appliesMediaViewMaskAsOutgoing = NO;
-                newMediaAttachmentCopy = [UIImage imageWithCGImage:photoItemCopy.image.CGImage];
-                
-                /**
-                 *  Set image to nil to simulate "downloading" the image
-                 *  and show the placeholder view
-                 */
-                photoItemCopy.image = nil;
-                
-                newMediaData = photoItemCopy;
-            }
-            else if ([copyMediaData isKindOfClass:[JSQLocationMediaItem class]]) {
-                JSQLocationMediaItem *locationItemCopy = [((JSQLocationMediaItem *)copyMediaData) copy];
-                locationItemCopy.appliesMediaViewMaskAsOutgoing = NO;
-                newMediaAttachmentCopy = [locationItemCopy.location copy];
-                
-                /**
-                 *  Set location to nil to simulate "downloading" the location data
-                 */
-                locationItemCopy.location = nil;
-                
-                newMediaData = locationItemCopy;
-            }
-            else if ([copyMediaData isKindOfClass:[JSQVideoMediaItem class]]) {
-                JSQVideoMediaItem *videoItemCopy = [((JSQVideoMediaItem *)copyMediaData) copy];
-                videoItemCopy.appliesMediaViewMaskAsOutgoing = NO;
-                newMediaAttachmentCopy = [videoItemCopy.fileURL copy];
-                
-                /**
-                 *  Reset video item to simulate "downloading" the video
-                 */
-                videoItemCopy.fileURL = nil;
-                videoItemCopy.isReadyToPlay = NO;
-                
-                newMediaData = videoItemCopy;
-            }
-            else {
-                NSLog(@"%s error: unrecognized media item", __PRETTY_FUNCTION__);
-            }
-            
-            newMessage = [JSQMessage messageWithSenderId:randomUserId
-                                             displayName:self.demoData.users[randomUserId]
-                                                   media:newMediaData];
-        }
-        else {
-            /**
-             *  Last message was a text message
-             */
-            newMessage = [JSQMessage messageWithSenderId:randomUserId
-                                             displayName:self.demoData.users[randomUserId]
-                                                    text:copyMessage.text];
-        }
-        
-        /**
-         *  Upon receiving a message, you should:
-         *
-         *  1. Play sound (optional)
-         *  2. Add new id<JSQMessageData> object to your data source
-         *  3. Call `finishReceivingMessage`
-         */
-        [JSQSystemSoundPlayer jsq_playMessageReceivedSound];
-        [self.demoData.messages addObject:newMessage];
-        [self finishReceivingMessageAnimated:YES];
-        
-        
-        if (newMessage.isMediaMessage) {
-            /**
-             *  Simulate "downloading" media
-             */
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                /**
-                 *  Media is "finished downloading", re-display visible cells
-                 *
-                 *  If media cell is not visible, the next time it is dequeued the view controller will display its new attachment data
-                 *
-                 *  Reload the specific item, or simply call `reloadData`
-                 */
-                
-                if ([newMediaData isKindOfClass:[JSQPhotoMediaItem class]]) {
-                    ((JSQPhotoMediaItem *)newMediaData).image = newMediaAttachmentCopy;
-                    [self.collectionView reloadData];
-                }
-                else if ([newMediaData isKindOfClass:[JSQLocationMediaItem class]]) {
-                    [((JSQLocationMediaItem *)newMediaData)setLocation:newMediaAttachmentCopy withCompletionHandler:^{
-                        [self.collectionView reloadData];
-                    }];
-                }
-                else if ([newMediaData isKindOfClass:[JSQVideoMediaItem class]]) {
-                    ((JSQVideoMediaItem *)newMediaData).fileURL = newMediaAttachmentCopy;
-                    ((JSQVideoMediaItem *)newMediaData).isReadyToPlay = YES;
-                    [self.collectionView reloadData];
-                }
-                else {
-                    NSLog(@"%s error: unrecognized media item", __PRETTY_FUNCTION__);
-                }
-                
-            });
-        }
-        
-    });
-}
-
-- (void)closePressed:(UIBarButtonItem *)sender
-{
-    [self.delegateModal didDismissJSQDemoViewController:self];
 }
 
 
@@ -392,44 +177,50 @@
          senderDisplayName:(NSString *)senderDisplayName
                       date:(NSDate *)date
 {
-    /**
-     *  Sending a message. Your implementation of this method should do *at least* the following:
-     *
-     *  1. Play sound (optional)
-     *  2. Add new id<JSQMessageData> object to your data source
-     *  3. Call `finishSendingMessage`
-     */
+    
     [JSQSystemSoundPlayer jsq_playMessageSentSound];
     
-    // A list of extensions to check against
+    /**
+     *  A list of extensions to check against
+     */
     NSArray *imageExtensions = @[@"png", @"jpg", @"gif"]; //...
     
     NSString *extension = [text pathExtension];
     if([imageExtensions containsObject:extension])
     {
+        /**
+         *  Generating Image From Using Data
+         */
         NSURL *url = [NSURL URLWithString:text];
         NSData *data = [NSData dataWithContentsOfURL:url];
         UIImage *img = [[UIImage alloc] initWithData:data];
         typeof(self) __weak weakSelf = self;
-        [self.demoData addPhotoMediaMessagewithImage:img withCompletionHandler:^(BOOL isSuccess) {
-            [weakSelf.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+        [self.chatData addPhotoMediaMessagewithImage:img withCompletionHandler:^(BOOL isSuccess) {
+            [weakSelf.chatData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
                 [weakSelf.collectionView reloadData];
             }];
         }];
     }
     else
     {
+        /**
+         *  Generating Message
+         */
         JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
                                                  senderDisplayName:senderDisplayName
                                                               date:date
                                                               text:text];
         
-        [self.demoData.messages addObject:message];
+        [self.chatData.messages addObject:message];
         
     }
     
     
-    // going for the parsing
+    
+    /**
+     *  Going for the parsing
+     *  "chatLog" is a Class name used for all the chat to be stored on Parse
+     */
     PFObject *newMessage = [PFObject objectWithClassName:@"chatLog"];
     [newMessage setObject:text forKey:@"message"];
     [newMessage setObject:senderDisplayName forKey:@"sender"];
@@ -438,14 +229,18 @@
     [newMessage saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if(succeeded)
         {
-            [self.demoData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
+            [self.chatData loadLocalChatwithCompletionHandler:^(BOOL isSuccess) {
                 [self finishSendingMessageAnimated:YES];
             }];
             
-
+            
         }
     }];
     
+    
+    /**
+     *  Sending Push Notification using Parse
+     */
     PFPush *push = [[PFPush alloc] init];
     [push setChannel:@"global"];
     [push setMessage:[NSString stringWithFormat:@"%@ : %@",senderDisplayName,text]];
@@ -456,7 +251,10 @@
 - (void)didPressAccessoryButton:(UIButton *)sender
 {
     [self.inputToolbar.contentView.textView resignFirstResponder];
-
+    
+    /**
+     *  Image Picker Controller initialization
+     */
     UIImagePickerController * picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
@@ -464,16 +262,15 @@
 }
 
 
+#pragma mark - UIImagePickerController Delegate Methods
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     [picker dismissViewControllerAnimated:YES completion:nil];
     pickedImage = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
     
     typeof(self) __weak weakSelf = self;
-    
-    
-    [self.demoData addPhotoMediaMessagewithImage:pickedImage withCompletionHandler:^(BOOL i) {
-        [weakSelf.demoData loadLocalChatwithCompletionHandler:^(BOOL j) {
+    [self.chatData addPhotoMediaMessagewithImage:pickedImage withCompletionHandler:^(BOOL i) {
+        [weakSelf.chatData loadLocalChatwithCompletionHandler:^(BOOL j) {
             [JSQSystemSoundPlayer jsq_playMessageSentSound];
             [weakSelf.collectionView reloadData];
         }];
@@ -486,12 +283,12 @@
 
 - (id<JSQMessageData>)collectionView:(JSQMessagesCollectionView *)collectionView messageDataForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return [self.demoData.messages objectAtIndex:indexPath.item];
+    return [self.chatData.messages objectAtIndex:indexPath.item];
 }
 
 - (void)collectionView:(JSQMessagesCollectionView *)collectionView didDeleteMessageAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self.demoData.messages removeObjectAtIndex:indexPath.item];
+    [self.chatData.messages removeObjectAtIndex:indexPath.item];
 }
 
 - (id<JSQMessageBubbleImageDataSource>)collectionView:(JSQMessagesCollectionView *)collectionView messageBubbleImageDataForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -503,13 +300,13 @@
      *  Otherwise, return your previously created bubble image data objects.
      */
     
-    JSQMessage *message = [self.demoData.messages objectAtIndex:indexPath.item];
+    JSQMessage *message = [self.chatData.messages objectAtIndex:indexPath.item];
     
     if ([message.senderId isEqualToString:self.senderId]) {
-        return self.demoData.outgoingBubbleImageData;
+        return self.chatData.outgoingBubbleImageData;
     }
     
-    return self.demoData.incomingBubbleImageData;
+    return self.chatData.incomingBubbleImageData;
 }
 
 - (id<JSQMessageAvatarImageDataSource>)collectionView:(JSQMessagesCollectionView *)collectionView avatarImageDataForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -534,7 +331,7 @@
      *
      *  Override the defaults in `viewDidLoad`
      */
-    JSQMessage *message = [self.demoData.messages objectAtIndex:indexPath.item];
+    JSQMessage *message = [self.chatData.messages objectAtIndex:indexPath.item];
     
     if ([message.senderId isEqualToString:self.senderId]) {
         if (![NSUserDefaults outgoingAvatarSetting]) {
@@ -548,7 +345,7 @@
     }
     
     
-    return [self.demoData.avatars objectForKey:message.senderId];
+    return [self.chatData.avatars objectForKey:message.senderId];
 }
 
 - (NSAttributedString *)collectionView:(JSQMessagesCollectionView *)collectionView attributedTextForCellTopLabelAtIndexPath:(NSIndexPath *)indexPath
@@ -560,7 +357,7 @@
      *  Show a timestamp for every 3rd message
      */
     if (indexPath.item % 3 == 0) {
-        JSQMessage *message = [self.demoData.messages objectAtIndex:indexPath.item];
+        JSQMessage *message = [self.chatData.messages objectAtIndex:indexPath.item];
         return [[JSQMessagesTimestampFormatter sharedFormatter] attributedTimestampForDate:message.date];
     }
     
@@ -569,7 +366,7 @@
 
 - (NSAttributedString *)collectionView:(JSQMessagesCollectionView *)collectionView attributedTextForMessageBubbleTopLabelAtIndexPath:(NSIndexPath *)indexPath
 {
-    JSQMessage *message = [self.demoData.messages objectAtIndex:indexPath.item];
+    JSQMessage *message = [self.chatData.messages objectAtIndex:indexPath.item];
     
     /**
      *  iOS7-style sender name labels
@@ -579,7 +376,7 @@
     }
     
     if (indexPath.item - 1 > 0) {
-        JSQMessage *previousMessage = [self.demoData.messages objectAtIndex:indexPath.item - 1];
+        JSQMessage *previousMessage = [self.chatData.messages objectAtIndex:indexPath.item - 1];
         if ([[previousMessage senderId] isEqualToString:message.senderId]) {
             return nil;
         }
@@ -600,7 +397,7 @@
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return [self.demoData.messages count];
+    return [self.chatData.messages count];
 }
 
 - (UICollectionViewCell *)collectionView:(JSQMessagesCollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -610,21 +407,7 @@
      */
     JSQMessagesCollectionViewCell *cell = (JSQMessagesCollectionViewCell *)[super collectionView:collectionView cellForItemAtIndexPath:indexPath];
     
-    /**
-     *  Configure almost *anything* on the cell
-     *
-     *  Text colors, label text, label colors, etc.
-     *
-     *
-     *  DO NOT set `cell.textView.font` !
-     *  Instead, you need to set `self.collectionView.collectionViewLayout.messageBubbleFont` to the font you want in `viewDidLoad`
-     *
-     *
-     *  DO NOT manipulate cell layout information!
-     *  Instead, override the properties you want on `self.collectionView.collectionViewLayout` from `viewDidLoad`
-     */
-    
-    JSQMessage *msg = [self.demoData.messages objectAtIndex:indexPath.item];
+    JSQMessage *msg = [self.chatData.messages objectAtIndex:indexPath.item];
     
     if (!msg.isMediaMessage) {
         
@@ -644,8 +427,6 @@
 
 
 
-#pragma mark - UICollectionView Delegate
-
 #pragma mark - Custom menu items
 
 - (BOOL)collectionView:(UICollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
@@ -653,7 +434,7 @@
     if (action == @selector(customAction:)) {
         return YES;
     }
-
+    
     return [super collectionView:collectionView canPerformAction:action forItemAtIndexPath:indexPath withSender:sender];
 }
 
@@ -663,13 +444,13 @@
         [self customAction:sender];
         return;
     }
-
+    
     [super collectionView:collectionView performAction:action forItemAtIndexPath:indexPath withSender:sender];
 }
 
 - (void)customAction:(id)sender
 {
-
+    
 }
 
 
@@ -704,13 +485,13 @@
     /**
      *  iOS7-style sender name labels
      */
-    JSQMessage *currentMessage = [self.demoData.messages objectAtIndex:indexPath.item];
+    JSQMessage *currentMessage = [self.chatData.messages objectAtIndex:indexPath.item];
     if ([[currentMessage senderId] isEqualToString:self.senderId]) {
         return 0.0f;
     }
     
     if (indexPath.item - 1 > 0) {
-        JSQMessage *previousMessage = [self.demoData.messages objectAtIndex:indexPath.item - 1];
+        JSQMessage *previousMessage = [self.chatData.messages objectAtIndex:indexPath.item - 1];
         if ([[previousMessage senderId] isEqualToString:[currentMessage senderId]]) {
             return 0.0f;
         }
@@ -760,7 +541,7 @@
                                                  senderDisplayName:self.senderDisplayName
                                                               date:[NSDate date]
                                                              media:item];
-        [self.demoData.messages addObject:message];
+        [self.chatData.messages addObject:message];
         [self finishSendingMessage];
         return NO;
     }

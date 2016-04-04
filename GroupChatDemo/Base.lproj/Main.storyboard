@@ -5,10 +5,10 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
     </dependencies>
     <scenes>
-        <!--Demo Messages View Controller-->
+        <!--Group Chat View Controller-->
         <scene sceneID="hEo-k1-Ni0">
             <objects>
-                <viewController storyboardIdentifier="DemoVC" id="LaU-kT-OJf" customClass="DemoMessagesViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DemoVC" id="LaU-kT-OJf" customClass="GroupChatViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="Q3N-KE-wMu"/>
                         <viewControllerLayoutGuide type="bottom" id="8Wf-dg-MZy"/>

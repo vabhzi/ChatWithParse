@@ -1,29 +1,18 @@
 //
-//  Created by Jesse Squires
-//  http://www.jessesquires.com
+//  GroupChatModelData.h
+//  GroupChatDemo
 //
-//
-//  Documentation
-//  http://cocoadocs.org/docsets/JSQMessagesViewController
-//
-//
-//  GitHub
-//  https://github.com/jessesquires/JSQMessagesViewController
-//
-//
-//  License
-//  Copyright (c) 2014 Jesse Squires
-//  Released under an MIT license: http://opensource.org/licenses/MIT
+//  Created by Vaibhav Mistry on 4/3/16.
+//  Copyright © 2016 Vaibhav Mistry. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
-
 #import "JSQMessages.h"
 
 
-@interface DemoModelData : NSObject
+@interface GroupChatModelData : NSObject
 
 @property (strong, nonatomic) NSMutableArray *messages;
 

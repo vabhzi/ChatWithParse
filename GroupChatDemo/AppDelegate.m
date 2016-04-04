@@ -18,24 +18,32 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    [Parse setApplicationId:@"WnfMiyOsYTnssowrFizTyGjx1JQAdXySWGfSjYYs" clientKey:@"bMGCCgKk59x3KytppCiSXscddo4vS9ZYGx28WmEN"];
+    /**
+     * Prase configuration
+     */
+    [Parse setApplicationId:@"WnfMiyOsYTnssowrFizTyGjx1JQAdXySWGfSjYYs"
+                  clientKey:@"bMGCCgKk59x3KytppCiSXscddo4vS9ZYGx28WmEN"];
     
+    
+    /**
+     *  Notification Configuration
+     */
     UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
                                                     UIUserNotificationTypeBadge |
                                                     UIUserNotificationTypeSound);
-    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
-                                                                             categories:nil];
+    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes categories:nil];
     [application registerUserNotificationSettings:settings];
     [application registerForRemoteNotifications];
     
     
-    
-    // Override point for customization after application launch.
     return YES;
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    // Store the deviceToken in the current installation and save it to Parse.
+    
+    /**
+     *  Store the deviceToken in the current installation and save it to Parse.
+     */
     PFInstallation *installation = [PFInstallation currentInstallation];
     [installation setDeviceTokenFromData:deviceToken];
     installation.channels = @[ @"global" ];
@@ -43,7 +51,10 @@
 }
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-   // [PFPush handlePush:userInfo];
+    
+    /**
+     *  Refresh Handler
+     */
     if(_refreshHandler)
     {
         _refreshHandler();

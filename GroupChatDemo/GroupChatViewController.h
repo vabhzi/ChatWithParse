@@ -1,10 +1,10 @@
-//
-//  GroupChatViewController.h
-//  GroupChatDemo
-//
-//  Created by Vaibhav Mistry on 4/3/16.
-//  Copyright © 2016 Vaibhav Mistry. All rights reserved.
-//
+/*!
+ * GroupChatViewController.h
+ * GroupChatDemo
+ *
+ * Created by Vaibhav Mistry on 4/3/16.
+ *  Copyright © 2016 Vaibhav Mistry. All rights reserved.
+ */
 
 
 // Import all the things

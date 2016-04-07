@@ -1,10 +1,11 @@
-//
-//  AppDelegate.m
-//  GroupChatDemo
-//
-//  Created by Vaibhav Mistry on 4/3/16.
-//  Copyright © 2016 Vaibhav Mistry. All rights reserved.
-//
+/*!
+ * AppDelegate.m
+ * GroupChatDemo
+ *
+ * Created by Vaibhav Mistry on 4/3/16.
+ *  Copyright © 2016 Vaibhav Mistry. All rights reserved.
+ */
+
 
 #import "AppDelegate.h"
 #import <Parse.h>
